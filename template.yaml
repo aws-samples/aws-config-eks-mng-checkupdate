@@ -1,0 +1,84 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  An AWS Lambda function that check Amazon EKS MNG for new EKS Optimized AMI version
+Transform:
+- 'AWS::Serverless-2016-10-31'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        LOG_LEVEL: INFO # DEBUG if need more information
+Resources:
+  ConfigEksMngLambda:
+    Type: AWS::Serverless::Function
+    DependsOn:
+    - ConfigEksMngLambdaLogGroup
+    Properties:
+      Description: A Lambda function that check EKS MNG for new EKS Optimized AMI version
+      Runtime: nodejs18.x
+      Handler: src/handlers/scheduled-event-logger.scheduledEventLoggerHandler
+      MemorySize: 512
+      Timeout: 900
+      Tags:
+        aws-samples: ConfigEKS_MNG_Rule
+      Policies:
+        - {
+            'Version': '2012-10-17',
+            'Statement': [
+                {
+                    'Effect': 'Allow',
+                    'Action': [
+                        'eks:ListClusters',
+                        'eks:DescribeNodegroup',
+                        'eks:ListNodegroups',
+                        'config:PutEvaluations',
+                        'ssm:GetParameter',
+                        "ec2:describeImages"
+                    ],
+                    'Resource': '*'
+                }
+            ]
+        }
+  ConfigEksMngLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/ConfigEksMngLambda
+      RetentionInDays: 7
+      Tags:
+        - Key: aws-samples
+          Value: ConfigEKS_MNG_Rule
+  ConfigEksMngRule:
+    Type: AWS::Config::ConfigRule
+    DependsOn: ConfigPermissionToCallConfigEksMngRule
+    Properties:
+      ConfigRuleName: EKS-MNG-CheckUpdate
+      Description: Custom AWS Config rule to check EKS MNG AMI version and possible updates
+      MaximumExecutionFrequency: TwentyFour_Hours
+      Scope:
+        ComplianceResourceTypes:
+          - 'AWS::EKS::Cluster'
+          - 'AWS::EKS::Nodegroup'
+      Source:
+        Owner: CUSTOM_LAMBDA
+        SourceDetails:
+        - EventSource: aws.config
+          MessageType: ConfigurationItemChangeNotification
+        - EventSource: aws.config
+          MessageType: OversizedConfigurationItemChangeNotification
+        - EventSource: aws.config
+          MessageType: ScheduledNotification
+          MaximumExecutionFrequency: TwentyFour_Hours
+        SourceIdentifier: !GetAtt ConfigEksMngLambda.Arn
+  ConfigPermissionToCallConfigEksMngRule:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt ConfigEksMngLambda.Arn
+      Action: lambda:InvokeFunction
+      Principal: config.amazonaws.com
+Outputs:
+  ConfigEksMngLambdaArn:
+    Description: Arn of the AWS Lambda that was created
+    Value: !GetAtt ConfigEksMngLambda.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ConfigEksMngLambdaArn'

@@ -1,0 +1,21 @@
+{
+    "name": "config-eks-ami",
+    "description": "Custom AWS Config rule to check EKS MNG ami updates/compliance",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "@aws-sdk/client-config-service": "3.165 - 3.245.0 || > 3.252.0" ,
+        "@aws-sdk/client-ec2": "^3.166.0",
+        "@aws-sdk/client-eks": "^3.166.0",
+        "@aws-sdk/client-ssm": "^3.194.0",
+        "semver": "^7.3.7",
+        "sprintf-js": "^1.1.2"
+    },
+    "devDependencies": {
+        "esbuild": "^0.15.9",
+        "jest": "^26.6.3"
+    },
+    "scripts": {
+        "test": "jest"
+    }
+}

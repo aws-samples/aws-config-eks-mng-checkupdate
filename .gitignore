@@ -1,0 +1,8 @@
+.vscode
+node_modules
+.aws-sam/
+package-lock.json
+terraform/.terraform
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+samconfig.toml
