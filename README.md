@@ -8,8 +8,8 @@ To deploy the AWS Lambda and associated AWS Config rule, this will activate the 
 
 ```bash
 # You could download the zip from github instead of git clone
-git clone https://github.com/aws-samples/aws-config-custom-rule-eks-mng.git
-cd aws-config-custom-rule-eks-mng
+git clone https://github.com/aws-samples/aws-config-eks-mng-checkupdate.git
+cd aws-config-eks-mng-checkupdate
 sam build
 sam deploy --guided
 ```
